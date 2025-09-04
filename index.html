@@ -587,7 +587,7 @@
         };
 
         const callGeminiAPI = async (userMessage, isTest = false) => {
-            const apiKey = getStorageValue('geminiApiKey');
+            const apiKey = getStorageValue('geminiApiKey', CONFIG.defaultValues.geminiApiKey);
             if (!apiKey) throw new Error('Gemini API key not provided');
             
             const model = getStorageValue('geminiModel', CONFIG.defaultValues.geminiModel);
