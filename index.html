@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Interview Trainer</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -494,9 +500,12 @@
                     <textarea id="resume" rows="6" placeholder="Вставьте ваше резюме здесь для более персонализированной подготовки..."></textarea>
                 </div>
 
-                <button class="btn" onclick="startInterview()">
-                    Начать тренировку →
-                </button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn" onclick="startInterview()">
+                        Начать тренировку →
+                    </button>
+                    <button class="settings-btn" onclick="toggleSettings()">⚙️ Настройки</button>
+                </div>
             </div>
         </div>
 
@@ -891,7 +900,6 @@
             const proxyUrl = localStorage.getItem('proxyUrl') || 'http://localhost:3000';
             
             if (isTest) {
-                // Простая проверка доступности прокси
                 const response = await fetch(`${proxyUrl}/api/health`, {
                     method: 'GET',
                     headers: {
@@ -990,7 +998,6 @@
             }
             
             if (isTest) {
-                // Простой тест с минимальным запросом
                 const testResponse = await fetch('https://openrouter.ai/api/v1/models', {
                     headers: {
                         'Authorization': `Bearer ${apiKey}`
@@ -1046,7 +1053,6 @@
             }
             
             if (isTest) {
-                // Простой тест
                 const testResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
                 
                 if (!testResponse.ok) {
