@@ -170,7 +170,7 @@
             <h1>🤖 AI Interview Trainer</h1>
             <p>Подготовьтесь к собеседованию с помощью ИИ</p>
             <div style="margin-top: 20px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.3);">
-                <p style="color: var(--accent); font-size: 0.9rem;">✨ Автоматический деплой настроен и работает!</p>
+                <p style="color: var(--accent); font-size: 0.9rem;">🚀 Версия 3.1.0</p>
             </div>
         </div>
 
@@ -185,7 +185,10 @@
                     <label for="resume">📄 Ваше резюме (необязательно)</label>
                     <textarea id="resume" rows="6" placeholder="Вставьте ваше резюме здесь для более персонализированной подготовки..."></textarea>
                 </div>
-                <button class="btn" onclick="startInterview()">Начать тренировку →</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn" onclick="startInterview()">Начать тренировку →</button>
+                    <button class="settings-btn" onclick="toggleSettings()">⚙️ Настройки</button>
+                </div>
             </div>
         </div>
 
@@ -196,7 +199,7 @@
                     <h3>
                         <span class="status-dot"></span>
                         AI Интервьюер
-                        <span class="model-badge" id="modelBadge">GPT-4o</span>
+                        <span class="model-badge" id="modelBadge">Gemini 2.0 Flash</span>
                     </h3>
                     <div>
                         <button class="settings-btn" onclick="toggleSettings()">⚙️ Настройки</button>
@@ -230,8 +233,8 @@
         <div class="form-group">
             <label for="llmProvider">🤖 Выберите LLM провайдера</label>
             <select id="llmProvider" onchange="updateProviderSettings()">
-                <option value="openrouter">OpenRouter</option>
                 <option value="gemini">Google Gemini</option>
+                <option value="openrouter">OpenRouter</option>
             </select>
         </div>
         <div class="form-group">
@@ -246,8 +249,30 @@
             <input type="text" id="proxyUrl" placeholder="http://localhost:3000" onchange="saveSettings()">
         </div>
 
+        <!-- Gemini Section -->
+        <div class="provider-section" id="geminiSection">
+            <h4>Google Gemini Настройки</h4>
+            <div class="form-group">
+                <label for="geminiModel">Модель</label>
+                <select id="geminiModel" onchange="saveSettings()">
+                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Experimental</option>
+                    <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro Latest</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash Latest</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-flash-8b-latest">Gemini 1.5 Flash 8B Latest</option>
+                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="geminiApiKey">🔑 API Key</label>
+                <input type="password" id="geminiApiKey" placeholder="AIza..." onchange="saveSettings()">
+            </div>
+            <div class="model-info">💡 Gemini - передовые модели от Google с высокой производительностью</div>
+        </div>
+
         <!-- OpenRouter Section -->
-        <div class="provider-section" id="openrouterSection">
+        <div class="provider-section" id="openrouterSection" style="display: none;">
             <h4>OpenRouter Настройки</h4>
             <div class="form-group">
                 <label for="openrouterModel">Модель</label>
@@ -265,22 +290,6 @@
             <div class="model-info">💡 OpenRouter позволяет использовать множество моделей через единый API</div>
         </div>
 
-        <!-- Gemini Section -->
-        <div class="provider-section" id="geminiSection" style="display: none;">
-            <h4>Google Gemini Настройки</h4>
-            <div class="form-group">
-                <label for="geminiModel">Модель</label>
-                <select id="geminiModel" onchange="saveSettings()">
-                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="geminiApiKey">🔑 API Key</label>
-                <input type="password" id="geminiApiKey" placeholder="AIza..." onchange="saveSettings()">
-            </div>
-            <div class="model-info">💡 Gemini 2.0 Flash - быстрая и эффективная модель от Google</div>
-        </div>
-
         <div class="form-group">
             <label for="systemPrompt">💬 Системный промпт для ИИ агента</label>
             <textarea id="systemPrompt" rows="10" placeholder="Введите системный промпт..." 
@@ -290,9 +299,12 @@
     </div>
 
     <script>
-        // Глобальные переменные и конфигурация
-        let conversationHistory = [], currentVacancy = '', currentResume = '';
+        // Глобальные переменные
+        let conversationHistory = [];
+        let currentVacancy = '';
+        let currentResume = '';
         
+        // Конфигурация
         const CONFIG = {
             models: {
                 'openai/gpt-4o': 'GPT-4o',
@@ -300,9 +312,20 @@
                 'anthropic/claude-3.5-sonnet': 'Sonnet 3.5',
                 'x-ai/grok-2': 'Grok 2'
             },
+            geminiModels: {
+                'gemini-2.0-flash-exp': 'Gemini 2.0 Flash',
+                'gemini-1.5-pro-latest': 'Gemini 1.5 Pro',
+                'gemini-1.5-pro': 'Gemini 1.5 Pro',
+                'gemini-1.5-flash-latest': 'Gemini 1.5 Flash',
+                'gemini-1.5-flash': 'Gemini 1.5 Flash',
+                'gemini-1.5-flash-8b-latest': 'Gemini 1.5 Flash 8B',
+                'gemini-1.0-pro': 'Gemini 1.0 Pro'
+            },
             defaultValues: {
+                llmProvider: 'gemini',
                 openrouterModel: 'openai/gpt-4o',
                 geminiModel: 'gemini-2.0-flash-exp',
+                geminiApiKey: 'AIzaSyDIMqABFiNj0FudmRT9TjfYtvHLkRwgjgE',
                 proxyUrl: 'http://localhost:3000',
                 systemPrompt: 'Ты опытный HR-специалист и интервьюер. Проводи профессиональное собеседование на основе предоставленной вакансии. Задавай релевантные вопросы, оценивай ответы кандидата, давай конструктивную обратную связь. Будь дружелюбным, но профессиональным.'
             }
@@ -322,11 +345,8 @@
             navigator.userAgent.includes('Claude') || window.location.protocol === 'file:';
 
         const getOptimalApiMode = () => isClaudeEnvironment() ? 'proxy' : 'direct';
-
         const getStorageValue = (key, defaultValue = '') => localStorage.getItem(key) || defaultValue;
-
         const setStorageValue = (key, value) => localStorage.setItem(key, value);
-
         const getElement = id => document.getElementById(id);
 
         const showNotification = text => {
@@ -377,10 +397,10 @@
 
         const updateProviderSettings = () => {
             const provider = getElement('llmProvider').value;
-            const isOpenRouter = provider === 'openrouter';
+            const isGemini = provider === 'gemini';
             
-            getElement('openrouterSection').style.display = isOpenRouter ? 'block' : 'none';
-            getElement('geminiSection').style.display = isOpenRouter ? 'none' : 'block';
+            getElement('geminiSection').style.display = isGemini ? 'block' : 'none';
+            getElement('openrouterSection').style.display = isGemini ? 'none' : 'block';
             
             updateModelBadge();
             updateApiModeDisplay();
@@ -390,11 +410,12 @@
             const provider = getElement('llmProvider').value;
             const badge = getElement('modelBadge');
             
-            if (provider === 'openrouter') {
+            if (provider === 'gemini') {
+                const model = getElement('geminiModel').value;
+                badge.textContent = CONFIG.geminiModels[model] || 'Gemini 2.0 Flash';
+            } else {
                 const model = getElement('openrouterModel').value;
                 badge.textContent = CONFIG.models[model] || 'GPT-4o';
-            } else {
-                badge.textContent = 'Gemini 2.0';
             }
         };
 
@@ -414,13 +435,13 @@
 
         const loadSettings = () => {
             const settings = {
-                llmProvider: getStorageValue('llmProvider', 'openrouter'),
+                llmProvider: getStorageValue('llmProvider', CONFIG.defaultValues.llmProvider),
                 apiMode: getStorageValue('apiMode', getOptimalApiMode()),
                 proxyUrl: getStorageValue('proxyUrl', CONFIG.defaultValues.proxyUrl),
                 systemPrompt: getStorageValue('systemPrompt', CONFIG.defaultValues.systemPrompt),
                 openrouterApiKey: getStorageValue('openrouterApiKey'),
                 openrouterModel: getStorageValue('openrouterModel', CONFIG.defaultValues.openrouterModel),
-                geminiApiKey: getStorageValue('geminiApiKey'),
+                geminiApiKey: getStorageValue('geminiApiKey', CONFIG.defaultValues.geminiApiKey),
                 geminiModel: getStorageValue('geminiModel', CONFIG.defaultValues.geminiModel)
             };
             
@@ -470,192 +491,4 @@
                 console.error('API Error:', error);
             }
             
-            getElement('sendBtn').disabled = false;
-        };
-
-        const callLLMAPI = async (userMessage, isTest = false) => {
-            const provider = getStorageValue('llmProvider', 'openrouter');
-            const apiMode = getStorageValue('apiMode', 'direct');
-            
-            if (apiMode === 'proxy') {
-                return await callProxyAPI(userMessage, provider, isTest);
-            } else {
-                return provider === 'openrouter' ? 
-                    await callOpenRouterAPI(userMessage, isTest) : 
-                    await callGeminiAPI(userMessage, isTest);
-            }
-        };
-
-        const createMessages = (userMessage) => {
-            const systemPrompt = getStorageValue('systemPrompt', CONFIG.defaultValues.systemPrompt);
-            const context = `${systemPrompt}\n\nВакансия: ${currentVacancy}\n${currentResume ? `Резюме: ${currentResume}` : ''}`;
-            
-            return [
-                { role: 'system', content: context },
-                ...conversationHistory.slice(-10),
-                { role: 'user', content: userMessage }
-            ];
-        };
-
-        const callProxyAPI = async (userMessage, provider, isTest = false) => {
-            const proxyUrl = getStorageValue('proxyUrl', CONFIG.defaultValues.proxyUrl);
-            
-            if (isTest) {
-                const response = await fetch(`${proxyUrl}/api/health`);
-                if (!response.ok) throw new Error('Proxy server not available');
-                return 'Test successful';
-            }
-            
-            const messages = createMessages(userMessage);
-            let endpoint, requestBody, headers = { 'Content-Type': 'application/json' };
-            
-            if (provider === 'openrouter') {
-                endpoint = `${proxyUrl}/api/openrouter`;
-                headers.Authorization = `Bearer ${getStorageValue('openrouterApiKey')}`;
-                headers['HTTP-Referer'] = window.location.origin;
-                headers['X-Title'] = 'AI Interview Trainer';
-                
-                requestBody = {
-                    model: getStorageValue('openrouterModel', CONFIG.defaultValues.openrouterModel),
-                    messages: messages,
-                    max_tokens: 1000,
-                    temperature: 0.7
-                };
-            } else {
-                const apiKey = getStorageValue('geminiApiKey');
-                const model = getStorageValue('geminiModel', CONFIG.defaultValues.geminiModel);
-                endpoint = `${proxyUrl}/api/gemini/${model}?apiKey=${apiKey}`;
-                
-                let conversationText = messages[0].content + "\n\n";
-                conversationHistory.slice(-10).forEach(msg => {
-                    conversationText += `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content}\n\n`;
-                });
-                conversationText += `Кандидат: ${userMessage}\nИнтервьюер: `;
-                
-                requestBody = {
-                    contents: [{ parts: [{ text: conversationText }] }],
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-                };
-            }
-            
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            return provider === 'openrouter' ? 
-                data.choices[0].message.content : 
-                data.candidates[0].content.parts[0].text;
-        };
-
-        const callOpenRouterAPI = async (userMessage, isTest = false) => {
-            const apiKey = getStorageValue('openrouterApiKey');
-            if (!apiKey) throw new Error('OpenRouter API key not provided');
-            
-            if (isTest) {
-                const testResponse = await fetch('https://openrouter.ai/api/v1/models', {
-                    headers: { 'Authorization': `Bearer ${apiKey}` }
-                });
-                if (!testResponse.ok) throw new Error('Invalid API key or service unavailable');
-                return 'Test successful';
-            }
-            
-            const messages = createMessages(userMessage);
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                    'HTTP-Referer': window.location.origin,
-                    'X-Title': 'AI Interview Trainer'
-                },
-                body: JSON.stringify({
-                    model: getStorageValue('openrouterModel', CONFIG.defaultValues.openrouterModel),
-                    messages: messages,
-                    max_tokens: 1000,
-                    temperature: 0.7
-                })
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            return data.choices[0].message.content;
-        };
-
-        const callGeminiAPI = async (userMessage, isTest = false) => {
-            const apiKey = getStorageValue('geminiApiKey', CONFIG.defaultValues.geminiApiKey);
-            if (!apiKey) throw new Error('Gemini API key not provided');
-            
-            const model = getStorageValue('geminiModel', CONFIG.defaultValues.geminiModel);
-            
-            if (isTest) {
-                const testResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                if (!testResponse.ok) throw new Error('Invalid API key or service unavailable');
-                return 'Test successful';
-            }
-            
-            const systemPrompt = getStorageValue('systemPrompt', CONFIG.defaultValues.systemPrompt);
-            const context = `${systemPrompt}\n\nВакансия: ${currentVacancy}\n${currentResume ? `Резюме: ${currentResume}` : ''}`;
-            
-            let conversationText = context + "\n\n";
-            conversationHistory.slice(-10).forEach(msg => {
-                conversationText += `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content}\n\n`;
-            });
-            conversationText += `Кандидат: ${userMessage}\nИнтервьюер: `;
-            
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: conversationText }] }],
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-                })
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        };
-
-        const testConnection = async () => {
-            const statusDiv = getElement('connectionStatus');
-            statusDiv.innerHTML = '<span>🔄</span> Проверка соединения...';
-            statusDiv.className = 'connection-status warning';
-            
-            try {
-                await callLLMAPI("Тест", true);
-                statusDiv.innerHTML = '<span>✅</span> Соединение установлено';
-                statusDiv.className = 'connection-status success';
-            } catch (error) {
-                console.error('Connection test failed:', error);
-                
-                if (isClaudeEnvironment() && getElement('apiMode').value === 'direct') {
-                    statusDiv.innerHTML = '<span>⚠️</span> Среда Claude: рекомендуется использовать прокси-сервер';
-                    statusDiv.className = 'connection-status warning';
-                    getElement('apiMode').value = 'proxy';
-                    updateApiModeDisplay();
-                } else {
-                    statusDiv.innerHTML = '<span>❌</span> Ошибка соединения. Проверьте настройки API';
-                    statusDiv.className = 'connection-status error';
-                }
-            }
-        };
-
-        const showTypingIndicator = show => {
-            const indicator = getElement('typingIndicator');
-            indicator.classList.toggle('active', show);
-        };
-
-        const handleKeyPress = event => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        };
-    </script>
-</body>
-</html>
+            get
