@@ -170,11 +170,10 @@
             <h1>🤖 AI Interview Trainer</h1>
             <p>Подготовьтесь к собеседованию с помощью ИИ</p>
             <div style="margin-top: 20px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.3);">
-                <p style="color: var(--accent); font-size: 0.9rem;">🚀 Версия 3.1.0</p>
+                <p style="color: var(--accent); font-size: 0.9rem;">🚀 Версия 3.2.0</p>
             </div>
         </div>
 
-        <!-- Экран настройки -->
         <div id="setupScreen" class="screen active">
             <div class="card">
                 <div class="form-group">
@@ -192,7 +191,6 @@
             </div>
         </div>
 
-        <!-- Экран чата -->
         <div id="chatScreen" class="screen">
             <div class="chat-container">
                 <div class="chat-header">
@@ -223,7 +221,6 @@
         </div>
     </div>
 
-    <!-- Панель настроек -->
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
             <h2>⚙️ Настройки</h2>
@@ -249,7 +246,6 @@
             <input type="text" id="proxyUrl" placeholder="http://localhost:3000" onchange="saveSettings()">
         </div>
 
-        <!-- Gemini Section -->
         <div class="provider-section" id="geminiSection">
             <h4>Google Gemini Настройки</h4>
             <div class="form-group">
@@ -271,7 +267,6 @@
             <div class="model-info">💡 Gemini - передовые модели от Google с высокой производительностью</div>
         </div>
 
-        <!-- OpenRouter Section -->
         <div class="provider-section" id="openrouterSection" style="display: none;">
             <h4>OpenRouter Настройки</h4>
             <div class="form-group">
@@ -299,12 +294,10 @@
     </div>
 
     <script>
-        // Глобальные переменные
         let conversationHistory = [];
         let currentVacancy = '';
         let currentResume = '';
         
-        // Конфигурация
         const CONFIG = {
             models: {
                 'openai/gpt-4o': 'GPT-4o',
@@ -331,7 +324,6 @@
             }
         };
 
-        // Инициализация
         window.onload = () => {
             loadSettings();
             updateProviderSettings();
@@ -339,7 +331,6 @@
             testConnection();
         };
 
-        // Утилиты
         const isClaudeEnvironment = () => 
             ['claude.ai', 'anthropic'].some(domain => window.location.hostname.includes(domain)) ||
             navigator.userAgent.includes('Claude') || window.location.protocol === 'file:';
@@ -362,8 +353,7 @@
             setTimeout(() => notification.remove(), 3000);
         };
 
-        // Основные функции
-        const startInterview = () => {
+        function startInterview() {
             const vacancy = getElement('vacancy').value.trim();
             const resume = getElement('resume').value.trim();
             
@@ -381,21 +371,23 @@
             setTimeout(() => {
                 addMessage("Здравствуйте! Я ваш виртуальный интервьюер. Давайте начнем наше собеседование. Расскажите, пожалуйста, немного о себе и почему вас заинтересовала эта вакансия?", 'ai');
             }, 500);
-        };
+        }
 
-        const backToSetup = () => {
+        function backToSetup() {
             getElement('chatScreen').classList.remove('active');
             getElement('setupScreen').classList.add('active');
-        };
+        }
 
-        const toggleSettings = () => getElement('settingsPanel').classList.toggle('open');
+        function toggleSettings() {
+            getElement('settingsPanel').classList.toggle('open');
+        }
 
-        const updateApiModeDisplay = () => {
+        function updateApiModeDisplay() {
             const apiMode = getElement('apiMode').value;
             getElement('proxyUrlGroup').style.display = apiMode === 'proxy' ? 'block' : 'none';
-        };
+        }
 
-        const updateProviderSettings = () => {
+        function updateProviderSettings() {
             const provider = getElement('llmProvider').value;
             const isGemini = provider === 'gemini';
             
@@ -404,9 +396,9 @@
             
             updateModelBadge();
             updateApiModeDisplay();
-        };
+        }
 
-        const updateModelBadge = () => {
+        function updateModelBadge() {
             const provider = getElement('llmProvider').value;
             const badge = getElement('modelBadge');
             
@@ -417,9 +409,9 @@
                 const model = getElement('openrouterModel').value;
                 badge.textContent = CONFIG.models[model] || 'GPT-4o';
             }
-        };
+        }
 
-        const saveSettings = () => {
+        function saveSettings() {
             const fields = ['llmProvider', 'apiMode', 'proxyUrl', 'systemPrompt', 
                            'openrouterApiKey', 'openrouterModel', 'geminiApiKey', 'geminiModel'];
             
@@ -431,9 +423,9 @@
             updateModelBadge();
             updateApiModeDisplay();
             showNotification('Настройки сохранены');
-        };
+        }
 
-        const loadSettings = () => {
+        function loadSettings() {
             const settings = {
                 llmProvider: getStorageValue('llmProvider', CONFIG.defaultValues.llmProvider),
                 apiMode: getStorageValue('apiMode', getOptimalApiMode()),
@@ -449,9 +441,9 @@
                 const element = getElement(key);
                 if (element) element.value = value;
             });
-        };
+        }
 
-        const addMessage = (text, sender) => {
+        function addMessage(text, sender) {
             const messagesContainer = getElement('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
@@ -469,9 +461,9 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             conversationHistory.push({ role: sender === 'ai' ? 'assistant' : 'user', content: text });
-        };
+        }
 
-        const sendMessage = async () => {
+        async function sendMessage() {
             const input = getElement('messageInput');
             const message = input.value.trim();
             if (!message) return;
@@ -491,4 +483,13 @@
                 console.error('API Error:', error);
             }
             
-            get
+            getElement('sendBtn').disabled = false;
+        }
+
+        async function callLLMAPI(userMessage, isTest = false) {
+            const provider = getStorageValue('llmProvider', CONFIG.defaultValues.llmProvider);
+            const apiKey = getStorageValue('geminiApiKey', CONFIG.defaultValues.geminiApiKey);
+            const model = getStorageValue('geminiModel', CONFIG.defaultValues.geminiModel);
+            
+            if (isTest) {
+                const
